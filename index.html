@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Hair Design Charis ご予約</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #faf7f3; }
+  iframe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: 0; display: block; }
+  .msg { font-family: sans-serif; color: #555; padding: 24px; line-height: 1.8; }
+</style>
+</head>
+<body>
+<!-- Hair Design Charis 予約ページ:Apps Scriptの予約ページを、このページの中に表示します -->
+<iframe id="app" title="Hair Design Charis ご予約"></iframe>
+<noscript><p class="msg">このページを表示するには、JavaScriptを有効にしてください。</p></noscript>
+<script>
+  // Apps Scriptの予約ページURL(…/exec)。デプロイは「新バージョン」で更新するので、このURLは変わりません
+  var APP_URL = 'https://script.google.com/macros/s/AKfycby40wQVWLCrWFOfamZ2ryvnyEZa9BPw5fQ1uVg5Vup7u9kLEJJzRwlRSGbaf6w-avoa/exec';
+  // 「?t=slow」や「?b=予約の番号」などを、そのまま予約ページに渡す
+  document.getElementById('app').src = APP_URL + location.search;
+</script>
+</body>
+</html>
