@@ -8,18 +8,55 @@
 <style>
   html, body { margin: 0; height: 100%; background: #faf7f3; }
   iframe { position: fixed; top: 0; left: 0; width: 100%; height: 100%; border: 0; display: block; }
-  .msg { font-family: sans-serif; color: #555; padding: 24px; line-height: 1.8; }
+  .msg { font-family: sans-serif; color: #3b3431; padding: 32px 24px; line-height: 1.9; font-size: 16px; display: none; }
+  .msg a { display: block; margin-top: 18px; text-align: center; background: #06c755; color: #fff; text-decoration: none; border-radius: 99px; padding: 14px; font-weight: bold; }
 </style>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
-<!-- Hair Design Charis 予約ページ:Apps Scriptの予約ページを、このページの中に表示します -->
+<!-- Hair Design Charis 予約ページ:LINEの中(LIFF)で開き、Apps Scriptの予約ページをこのページの中に表示します -->
 <iframe id="app" title="Hair Design Charis ご予約"></iframe>
-<noscript><p class="msg">このページを表示するには、JavaScriptを有効にしてください。</p></noscript>
+<div class="msg" id="msg"></div>
+<noscript><p class="msg" style="display:block">このページを表示するには、JavaScriptを有効にしてください。</p></noscript>
 <script>
   // Apps Scriptの予約ページURL(…/exec)。デプロイは「新バージョン」で更新するので、このURLは変わりません
   var APP_URL = 'https://script.google.com/macros/s/AKfycby40wQVWLCrWFOfamZ2ryvnyEZa9BPw5fQ1uVg5Vup7u9kLEJJzRwlRSGbaf6w-avoa/exec';
-  // 「?t=slow」や「?b=予約の番号」などを、そのまま予約ページに渡す
-  document.getElementById('app').src = APP_URL + location.search;
+  // LINEの中で開くためのID(LINEログインのチャネルのLIFF)
+  var LIFF_ID = '2011759361-YYLlor1e';
+  var LIFF_URL = 'https://liff.line.me/' + LIFF_ID;
+  var mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  function showMsg(html) {
+    document.getElementById('app').style.display = 'none';
+    var m = document.getElementById('msg'); m.innerHTML = html; m.style.display = 'block';
+  }
+  // 「?q=記号」「?b=予約の番号」などを、そのまま予約ページに渡す(LINEの確認用のしるしを足す)
+  function openApp(extra) {
+    var q = location.search.replace(/^\?/, '').split('&').filter(function (x) { return x && !/^(lx|liff\.state)=/.test(x); });
+    q = q.concat(extra);
+    document.getElementById('app').src = APP_URL + (q.length ? '?' + q.join('&') : '');
+  }
+
+  liff.init({ liffId: LIFF_ID }).then(function () {
+    if (/[?&]liff\.state=/.test(location.search)) return; // LINEが元のURLに戻すまで待つ
+    if (!liff.isInClient()) {
+      // LINEの外(Safariなど)で開いたとき:スマホならLINEアプリで開き直す
+      if (mobile && !/[?&]lx=1/.test(location.search)) {
+        location.replace(LIFF_URL + (location.search ? location.search + '&' : '?') + 'lx=1');
+        return;
+      }
+      showMsg('<p>ネット予約は、スマホのLINEアプリからご利用いただけます。</p><p>お店のQRコードをスマホのカメラで読み取るか、お店のLINEのトーク画面の「ネット予約」ボタンから開いてください。</p>' +
+        (mobile ? '<a href="' + LIFF_URL + '">LINEで開く</a>' : ''));
+      return;
+    }
+    var tok = liff.getIDToken();
+    if (!tok) { liff.login(); return; }
+    return liff.getFriendship().then(function (f) { return !!f.friendFlag; }, function () { return true; }).then(function (friend) {
+      openApp(['lt=' + encodeURIComponent(tok)].concat(friend ? [] : ['fr=0']));
+    });
+  }).catch(function () {
+    showMsg('<p>ページを開けませんでした。お手数ですが、LINEアプリで開き直してください。</p><a href="' + LIFF_URL + '">LINEで開く</a>');
+  });
 </script>
 </body>
 </html>
